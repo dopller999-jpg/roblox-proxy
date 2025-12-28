@@ -4,16 +4,21 @@ import fetch from "node-fetch";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-async function proxy(url) {
-  const r = await fetch(url);
-  return await r.json();
-}
-
-app.get("/gamepass/:userId/:passId", async (req, res) => {
-  const data = await proxy(
-    `https://inventory.roproxy.com/v1/users/${req.params.userId}/items/GamePass/${req.params.passId}/is-owned`
-  );
-  res.json(data);
+app.get("/health", (req, res) => {
+  res.send("OK");
 });
 
-app.listen(PORT, () => console.log("Proxy running"));
+app.get("/gamepass/:userId/:passId", async (req, res) => {
+  try {
+    const url = `https://inventory.roproxy.com/v1/users/${req.params.userId}/items/GamePass/${req.params.passId}/is-owned`;
+    const r = await fetch(url);
+    const data = await r.json();
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.toString() });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
+});
